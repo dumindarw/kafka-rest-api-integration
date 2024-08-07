@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fi.mediconsult.integration.pis;
+package drw.integration.pis;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

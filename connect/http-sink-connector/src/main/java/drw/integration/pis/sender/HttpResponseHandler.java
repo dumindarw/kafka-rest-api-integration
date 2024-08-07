@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fi.mediconsult.integration.pis.sender;
+package drw.integration.pis.sender;
 
 import org.apache.hc.client5.http.fluent.Response;
 import org.apache.hc.core5.http.HttpResponse;

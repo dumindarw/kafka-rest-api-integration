@@ -1,7 +1,7 @@
-package fi.mediconsult.integration.pis.recordsender;
+package drw.integration.pis.recordsender;
 
-import fi.mediconsult.integration.pis.config.PISSinkConnectorConfig;
-import fi.mediconsult.integration.pis.sender.HttpSender;
+import drw.integration.pis.config.PISSinkConnectorConfig;
+import drw.integration.pis.sender.HttpSender;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.connect.sink.SinkRecord;

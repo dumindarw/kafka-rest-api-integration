@@ -1,4 +1,4 @@
-package fi.mediconsult.integration.pis.converter;
+package drw.integration.pis.converter;
 
 import org.apache.kafka.connect.json.JsonConverter;
 import org.apache.kafka.connect.sink.SinkRecord;

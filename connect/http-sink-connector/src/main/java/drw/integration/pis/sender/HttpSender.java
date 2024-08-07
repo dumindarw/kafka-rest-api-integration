@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fi.mediconsult.integration.pis.sender;
+package drw.integration.pis.sender;
 
 public interface HttpSender {
   String send(final String body);

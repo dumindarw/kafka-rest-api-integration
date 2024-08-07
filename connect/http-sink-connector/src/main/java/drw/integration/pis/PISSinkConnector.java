@@ -1,6 +1,6 @@
-package fi.mediconsult.integration.pis;
+package drw.integration.pis;
 
-import fi.mediconsult.integration.pis.config.PISSinkConnectorConfig;
+import drw.integration.pis.config.PISSinkConnectorConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.sink.SinkConnector;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static fi.mediconsult.integration.pis.config.PISSinkConnectorConfig.CONFIG_DEF;
+import static drw.integration.pis.config.PISSinkConnectorConfig.CONFIG_DEF;
 
 public class PISSinkConnector extends SinkConnector {
 

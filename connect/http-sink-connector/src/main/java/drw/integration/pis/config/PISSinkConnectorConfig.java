@@ -1,4 +1,4 @@
-package fi.mediconsult.integration.pis.config;
+package drw.integration.pis.config;
 
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;

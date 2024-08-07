@@ -1,8 +1,8 @@
-package fi.mediconsult.integration.pis;
+package drw.integration.pis;
 
-import fi.mediconsult.integration.pis.config.PISSinkConnectorConfig;
-import fi.mediconsult.integration.pis.recordsender.RecordSender;
-import fi.mediconsult.integration.pis.sender.DefaultHttpSender;
+import drw.integration.pis.config.PISSinkConnectorConfig;
+import drw.integration.pis.recordsender.RecordSender;
+import drw.integration.pis.sender.DefaultHttpSender;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.errors.DataException;

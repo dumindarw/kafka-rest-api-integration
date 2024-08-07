@@ -1,4 +1,4 @@
-package fi.mediconsult.integration.pis.converter;
+package drw.integration.pis.converter;
 
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.errors.DataException;

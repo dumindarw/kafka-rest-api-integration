@@ -1,8 +1,8 @@
-package fi.mediconsult.integration.pis.recordsender;
+package drw.integration.pis.recordsender;
 
-import fi.mediconsult.integration.pis.config.PISSinkConnectorConfig;
-import fi.mediconsult.integration.pis.converter.RecordValueConverter;
-import fi.mediconsult.integration.pis.sender.HttpSender;
+import drw.integration.pis.config.PISSinkConnectorConfig;
+import drw.integration.pis.converter.RecordValueConverter;
+import drw.integration.pis.sender.HttpSender;
 import org.apache.kafka.connect.sink.SinkRecord;
 
 import java.util.Collection;

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package fi.mediconsult.integration.pis.sender;
+package drw.integration.pis.sender;
 
-import fi.mediconsult.integration.pis.config.PISSinkConnectorConfig;
+import drw.integration.pis.config.PISSinkConnectorConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 
 interface HttpRequestBuilder {

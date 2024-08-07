@@ -1,0 +1,17 @@
+{
+  "name": "pis-sink-connector",
+  "config": {
+    "connector.class": "fi.mediconsult.integration.pis.PISSinkConnector",
+    "topics": "pis_basic_info",
+    "producer.topic": "pis_basic_info_result",
+    "http.headers.authorization.basic": "Basic bXV0cFQxOnB3ZA==",
+    "http.pis.url": "https://api.hiekkalaatikko.muutostietopalvelu.dvv.fi/api/v1/perustiedot-vko",
+    "http.headers.content.type": "application/json",
+    "keystore.password": "pis123",
+    "tasks.max": "1",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": false,
+    "value.converter.schemas.enable": false
+  }
+}

@@ -1,0 +1,4 @@
+grafana/grafana_data/
+bridge/file-uploads/
+kafka/logs/
+prometheus/prometheus_data/

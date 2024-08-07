@@ -1,0 +1,235 @@
+version: '3.5'
+
+services:
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.3
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    network_mode: host
+    environment:
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_NODE_ID: 1
+      KAFKA_BROKER_ID: 1
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_JMX_PORT: 9997
+      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=172.25.196.46 -Dcom.sun.management.jmxremote.rmi.port=9997
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://172.25.196.46:29092,EXTERNAL://localhost:9092'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@172.25.196.46:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://172.25.196.46:29092,CONTROLLER://172.25.196.46:29093,EXTERNAL://0.0.0.0:9092'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_OPTS: ' -javaagent:$KAFKA_HOME/libs/jmx_prometheus_javaagent-0.20.0.jar=7071:$KAFKA_HOME/config/jmx_exporter.yml'
+    volumes:
+      #- ./kafka/logs:/tmp/kraft-combined-logs
+      - ./kafka/libs:$KAFKA_HOME/libs
+      - ./kafka/config/jmx_exporter.yml:$KAFKA_HOME/config/jmx_exporter.yml     
+
+  connect:
+    image: confluentinc/cp-kafka-connect-base:7.5.3
+    ports:
+      - 8083:8083
+    container_name: connect
+    network_mode: host
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_JMX_PORT: 35000
+      KAFKA_JMX_HOSTNAME: kafka
+      KAFKA_DEBUG: true
+      CONNECT_BOOTSTRAP_SERVERS: "172.25.196.46:29092"
+      CONNECT_REST_ADVERTISED_HOST_NAME: localhost
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: connect-cluster-group
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_PLUGIN_PATH: "/usr/local/share/kafka/plugins,/usr/share/java,/usr/share/confluent-hub-components,/opt/connect-plugins"
+      CONNECT_CONNECTIONS_MAX_IDLE_MS: 180000
+      CONNECT_METADATA_MAX_AGE_MS: 180000
+      CONNECT_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.storage.StringConverter"
+      #CONNECT_VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://172.25.196.46:8081'
+      CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
+    #command:
+    #  - bash
+    #  - -c
+    #  - |
+    #    echo "Installing Connector"
+    #    confluent-hub install --no-prompt confluentinc/kafka-connect-http:1.7.0
+    #    echo "Launching Kafka Connect worker"
+    #    /etc/confluent/docker/run &
+    #    sleep infinity
+    volumes:
+      - ./connect/plugins:/usr/local/share/kafka/plugins/pis-sink-connector
+
+  kafka-bridge:
+    image: quay.io/strimzi/kafka-bridge
+    ports:
+      - 8090:8090
+    network_mode: host
+    command: "/opt/strimzi/bin/kafka_bridge_run.sh --config-file=/tmp/application.properties"
+    volumes:
+      - ./bridge/application-local.properties:/tmp/application.properties
+      - ./bridge/file-uploads:/opt/strimzi/file-uploads
+    #healthcheck:
+    #  interval: 5s
+    #  retries: 10
+    #  test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:8090
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.3
+    container_name: schema-registry
+    network_mode: host
+    depends_on:
+      - kafka
+    ports:
+      - 8081:8081
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://172.25.196.46:29092"
+
+
+  ksql-server:
+    image: confluentinc/ksqldb-server:0.29.0
+    container_name: ksql-server
+    network_mode: host
+    ports:
+      - 8088:8088
+    environment:
+      KSQL_BOOTSTRAP_SERVERS: 172.25.196.46:29092
+      KSQL_LISTENERS: http://0.0.0.0:8088
+      KSQL_KSQL_SERVICE_ID: ksql_service_2_
+      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
+      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
+      #KSQL_CONNECT_GROUP_ID: connect-cluster-group #"ksql-connect-cluster"
+     # KSQL_CONNECT_BOOTSTRAP_SERVERS: "172.25.196.46:29092"
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://172.25.196.46:8081"
+      KSQL_KSQL_CONNECT_URL: 'http://172.25.196.46:8083'
+      #KSQL_CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://172.25.196.46:8081"
+      #KSQL_CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.storage.StringConverter"
+      #KSQL_CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      #KSQL_CONNECT_CONFIG_STORAGE_TOPIC: "_ksql-connect-configs"
+      #KSQL_CONNECT_OFFSET_STORAGE_TOPIC: "_ksql-connect-offsets"
+      #KSQL_CONNECT_STATUS_STORAGE_TOPIC: "_ksql-connect-statuses"
+      #KSQL_CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      #KSQL_CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      #KSQL_CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+    depends_on:
+      - kafka 
+      - schema-registry    
+
+  ksqldb-cli:
+    image: confluentinc/ksqldb-cli:0.29.0
+    container_name: ksql-cli
+    entrypoint: /bin/sh
+    tty: true
+    network_mode: host
+    #volumes:
+      #- ./ksql/queries.sql:/ksql/queries.sql
+      #- ./ksql/wait-for-ksql-server.sh:/ksql/wait-for-ksql-server.sh
+    #command: ["/ksql/wait-for-ksql-server.sh"]
+    depends_on:
+      - kafka
+      - ksql-server
+
+  prom:
+    image: prom/prometheus:v2.45.3 
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus_data:/prometheus
+    command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus"
+    network_mode: "host"
+    ports:
+      - 9090:9090
+
+  grafana:
+    image: grafana/grafana:10.3.1
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: pass123
+      GF_SECURITY_ADMIN_USER: admin
+    network_mode: "host"
+    volumes:
+      - ./grafana/grafana_data:/var/lib/grafana
+    ports:
+      - 3000:3000
+    user: "472"   
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8080:8080
+    network_mode: "host"  
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true'
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: 172.25.196.46:29092
+      KAFKA_CLUSTERS_0_METRICS_PORT: 9997
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://172.25.196.46:8081
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: first
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://172.25.196.46:8083
+    #volumes:
+    #  - ~/kui/config.yml:/etc/kafkaui/dynamic_config.yaml
+
+#  conduktor-console:
+#    image: conduktor/conduktor-console:1.21.0
+#    ports:
+#      - "8080:8080"
+#    volumes:
+#      - conduktor_data:/var/conduktor
+#    network_mode: "host"  
+#    environment:
+#      CDK_DATABASE_URL: "postgresql://conduktor:conduktor789@172.25.196.46:5432/conduktor-console"
+#      CDK_CLUSTERS_0_ID: "default"
+#      CDK_CLUSTERS_0_NAME: "MC Kafka Cluster"
+#      CDK_CLUSTERS_0_COLOR: "#0013E7"
+#      CDK_ROOT_LOG_LEVEL: DEBUG
+#      CDK_CLUSTERS_0_BOOTSTRAPSERVERS: "PLAINTEXT://172.25.196.46:29092"
+#      CDK_CLUSTERS_0_SCHEMAREGISTRY_URL: "http://172.25.196.46:8081"
+#      CDK_CLUSTERS_0_KAFKACONNECTS_0_URL: "http://172.25.196.46:8083"
+#      CDK_CLUSTERS_0_KAFKACONNECTS_0_NAME: "full stack kafka connect"
+#      CDK_LISTENING_PORT: 8080
+#      CDK_MONITORING_CORTEX-URL: http://172.25.196.46:9009/
+#      CDK_MONITORING_ALERT-MANAGER-URL: http://172.25.196.46:9010/
+#      CDK_MONITORING_CALLBACK-URL: http://172.25.196.46:8080/monitoring/api/
+#      CDK_MONITORING_NOTIFICATIONS-CALLBACK-URL: http://172.25.196.46:8080
+
+#  postgresql:
+#    image: postgres:14
+#    hostname: postgresql
+#    ports:
+#      - 5432:5432
+#    volumes:
+#      - pg_data:/var/lib/postgresql/data
+#    network_mode: "host"
+#    environment:
+#      POSTGRES_DB: "conduktor-console"
+#      POSTGRES_USER: "conduktor"
+#      POSTGRES_PASSWORD: "conduktor789"
+#      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+
+#  conduktor-monitoring:
+#    image: conduktor/conduktor-console-cortex:1.21.1
+#    ports:
+#      - 9009:9009
+#      - 9010:9010
+#    environment:
+#      CDK_CONSOLE-URL: "http://172.25.196.46:8080"
+
+#volumes:
+#  pg_data: {}
+#  conduktor_data: {}      

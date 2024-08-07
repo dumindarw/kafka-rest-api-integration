@@ -1,7 +1,7 @@
 {
   "name": "pis-sink-connector",
   "config": {
-    "connector.class": "fi.mediconsult.integration.pis.PISSinkConnector",
+    "connector.class": "drw.integration.pis.PISSinkConnector",
     "topics": "pis_basic_info",
     "producer.topic": "pis_basic_info_result",
     "http.headers.authorization.basic": "Basic bXV0cFQxOnB3ZA==",
